@@ -1,16 +1,16 @@
-import praw, ruqqus, time, feedparser, sys, twitter
+import praw, time, feedparser, sys, twitter, requests, json
 
-reddit = praw.Reddit(user_agent='CUM', client_id='CUM', client_secret='CUM',)
-ruqqus = ruqqus.RuqqusClient(client_id='CUM', client_secret='CUM', refresh_token='CUM')
-twitter = twitter.Api(consumer_key='CUM', access_token_key='CUM', access_token_secret='CUM', tweet_mode='extended')
+reddit = praw.Reddit(user_agent='hey', client_id='PUT YOUR REDDIT CLIENT ID HERE', client_secret='PUT YOUR REDDIT CLIENT SECRET HERE',)
+data={'client_id': 'PUT YOUR RUQQUS CLIENT ID HERE',
+	'client_secret': 'PUT YOUR RUQQUS CLIENT SECRET HERE',
+	'grant_type': 'refresh',
+	'refresh_token': 'PUR YOUR RUQQUS REFERESH TOKEN HERE, GET IT FROM HERE https://ruqqus-auth.glitch.me'
+}
 
 subsandguilds = {
 'prequelmemes': None,
 'brawlhalla': None,
 'therightcantmeme': None,
-'androidapps': None,
-'androidgaming': None,
-'bogleheads': None,
 'business': None,
 'dataisbeautiful': None,
 'finance': None,
@@ -57,6 +57,42 @@ subsandguilds = {
 'amadisasters': None,
 'ape': None,
 'arabfunny': None,
+'stupidpol': None,
+'marvel': None,
+'virginvschad': None,
+'starterpacks': None,
+'Eyebleach': None,
+'politicalcompassmemes': None,
+'breakingbad': None,
+'dundermifflin': None,
+'GameofThrones': None,
+'apexlegends': None,
+'overwatch': None,
+'tf2': None,
+'Valorant': None,
+'csgo': None,
+'dogs': None,
+'deadbydaylight': None,
+'ark': None,
+'amongus': None,
+'dota2': None,
+'PUBG': None,
+'Rainbow6': None,
+'valheim': None,
+'GTAV': None,
+'warframe': None,
+'music': None,
+'cryptocurrency': None,
+'showerthoughts': None,
+'unpopularopinion': None,
+'todayilearned': None,
+'bitcoin': None,
+'crime': 'crimeandmystery',
+'antifastonetoss': 'stonetoss',
+'smugideologyman': 'smuggies',
+'DestinyTheGame': 'Destiny',
+'playrust': 'rust',
+'FitToFat': 'fatpeoplehate',
 'map_porn': 'mapporn',
 'extrafabulouscomics': 'comics',
 'transpassing': 'transcuties',
@@ -76,7 +112,6 @@ subsandguilds = {
 'okbuddyhistoretard': 'historymemes',
 'historydoge': 'historymemes',
 'hobbydrama': 'deuxrama',
-'gme_meltdown': 'gamestop',
 'facts': 'unpoplularfacts',
 'internationalbusiness': 'business',
 'internetdrama': 'deuxrama',
@@ -135,52 +170,50 @@ feedsandguilds = {
 'https://seekingalpha.com/api/sa/combined/SPXL.xml': 'investing'}
 
 while True:
+	accesstoken = json.loads(requests.post('https://ruqqus.com/oauth/grant', headers={"User-Agent": "cum"}, data = data).text)['access_token']
+	headers = {'User-Agent': 'cum', 'Authorization': f'Bearer {accesstoken}'}
+
 	print('Mirroring subreddits...')
 	for sub, guild in subsandguilds.items():
 		n = 0
 		if guild == None: guild = sub
-		for p in reddit.subreddit(sub).top('day', limit=5):
-			if p.is_self or 'reddit.com/gallery' in p.url or 'v.redd' in p.url or 'u/' in p.title or 'r/' in p.title or 'reddit' in p.title: continue
+		for p in reddit.subreddit(sub).top('day', limit=10):
+			if 'reddit.com/gallery' in p.url or 'v.redd' in p.url or 'u/' in p.title or 'r/' in p.title or 'reddit' in p.title or '?' in p.title: continue
 			try:
-				post = ruqqus.submit_post(guild=guild, url=p.url, title=p.title)['permalink']
-				print(f"ruqqus.com{post}")
+				if p.is_self: post = requests.post('https://ruqqus.com/api/v1/submit', headers=headers, data={'body':p.selftext, 'title':p.title, 'board':guild})
+				else: post = requests.post('https://ruqqus.com/api/v1/submit', headers=headers, data={'url':p.url, 'title':p.title, 'board':guild})
+				postid = json.loads(post.text)['id']
+				print(f'ruqqus.com/post/{postid}')
 			except Exception as e: print(e)
 
 	print('Mirroring r/drama...')
 	for p in reddit.subreddit('drama').top('day'):
 		if p.is_self: continue
 		try:
-			post = ruqqus.submit_post(guild='deuxrama', url=p.url, title=p.title.replace('/r/drama', 'deux').replace('r/drama', 'deux').replace('/drama', 'deux'))['permalink']
-			print(f"ruqqus.com{post}")
+			title = p.title.replace('/r/drama', 'deux').replace('r/drama', 'deux').replace('/drama', 'deux')
+			post = requests.post('https://ruqqus.com/api/v1/submit', headers=headers, data={'url':p.url, 'title':title, 'board':'deuxrama'})
+			postid = json.loads(post.text)['id']
+			print(f'ruqqus.com/post/{postid}')
 		except Exception as e: print(e)
 		
 	print('Posting memes')
 	for p in reddit.subreddit(memesubs).hot(limit=3):
 		if p.is_self or 'reddit.com/gallery' in p.url or 'v.redd' in p.url or 'u/' in p.title or 'r/' in p.title or 'reddit' in p.title: continue
 		try:
-			post = ruqqus.submit_post(guild='dankmemes', url=p.url, title=p.title)['permalink']
-			print(f"ruqqus.com{post}")
+			post = requests.post('https://ruqqus.com/api/v1/submit', headers=headers, data={'url':p.url, 'title':p.title, 'board':guild})
+			postid = json.loads(post.text)['id']
+			print(f'ruqqus.com/post/{postid}')
 		except Exception as e: print(e)
 	
 	print('Posting RSS feeds..')	
 	for feed, guild in feedsandguilds.items():
 		for item in feedparser.parse(feed).entries:
-			try: 
-				post = ruqqus.submit_post(guild=guild, url=item.link, title=item.title)['permalink']
-				print(f"ruqqus.com{post}")
-			except Exception as e: 
-				print(e)
-				break
-				
-	print('Posting tweets..')
-	for user, guild in {'elonmusk': 'elonmusk', 'cathiedwood': 'personalrssfeed'}.items():
-		for tweet in twitter.GetUserTimeline(screen_name=user):
-			try: 
-				post = ruqqus.submit_post(guild=guild, url=f'https://twitter.com/{user}/status/{tweet.id}', title=f'@{user}: {tweet.full_text}')['permalink']
-				print(f'ruqqus.com{post}')
-			except Exception as e:
-				print(e)
-				break
-
+			try:
+				post = requests.post('https://ruqqus.com/api/v1/submit', headers=headers, data={'url':p.url, 'title':p.title, 'board':guild})
+				postid = json.loads(post.text)['id']
+				print(f'ruqqus.com/post/{postid}')
+			except Exception as e: print(e)
+			break
+	
 	print('Sleeping...')
 	time.sleep(600)
