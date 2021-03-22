@@ -1,4 +1,4 @@
-import praw, time, feedparser, sys, twitter, requests, json
+import praw, time, feedparser, sys, twitter, requests, json, ous
 
 reddit = praw.Reddit(user_agent='hey', client_id='PUT YOUR REDDIT CLIENT ID HERE', client_secret='PUT YOUR REDDIT CLIENT SECRET HERE',)
 data={'client_id': 'PUT YOUR RUQQUS CLIENT ID HERE',
@@ -7,25 +7,29 @@ data={'client_id': 'PUT YOUR RUQQUS CLIENT ID HERE',
 	'refresh_token': 'PUR YOUR RUQQUS REFERESH TOKEN HERE, GET IT FROM HERE https://ruqqus-auth.glitch.me'
 }
 
+directory = os.path.dirname(os.path.realpath(__file__))
+urls = open(f'{directory}/urls.txt', encoding='utf8').read()
+titles = open(f'{directory}/titles.txt', encoding='utf8').read()
+
 subsandguilds = {
 'prequelmemes': None,
 'brawlhalla': None,
-'therightcantmeme': None,
 'business': None,
 'dataisbeautiful': None,
 'finance': None,
+'games': None,
+'pcgaming': None,
 'gamingnews': None,
+'stopgaming': None,
 'infographics': None,
 'investing': None,
 'martinshkreli': None,
 'oldnews': None,
 'passive_income': None,
-'pcgaming': None,
 'pets': None,
 'portfolios': None,
 'reclassified': None,
 'samsung': None,
-'stopgaming': None,
 'themotte': None,
 'thetagang': None,
 'thewallstreet': None,
@@ -37,106 +41,58 @@ subsandguilds = {
 'privacy': None,
 'interestingasfuck': None,
 'historymemes': None,
-'science': None,
-'degoogle': None,
-'darknet': None,
-'animemes': None,
 'history': None,
-'piracy': None,
-'linux': None,
 'steam': None,
-'minecraft': None,
 'television': None,
 'movies': None,
-'wot': None,
 '4chan': None,
-'rarepuppers': None,
 'wikipedia': None,
-'cats': None,
 'mapporn': None,
 'amadisasters': None,
-'ape': None,
 'arabfunny': None,
-'stupidpol': None,
-'marvel': None,
 'virginvschad': None,
 'starterpacks': None,
-'Eyebleach': None,
 'politicalcompassmemes': None,
-'breakingbad': None,
-'dundermifflin': None,
-'GameofThrones': None,
-'apexlegends': None,
-'overwatch': None,
-'tf2': None,
-'Valorant': None,
-'csgo': None,
-'dogs': None,
-'deadbydaylight': None,
-'ark': None,
-'amongus': None,
-'dota2': None,
-'PUBG': None,
-'Rainbow6': None,
-'valheim': None,
-'GTAV': None,
-'warframe': None,
-'music': None,
-'cryptocurrency': None,
-'showerthoughts': None,
-'unpopularopinion': None,
 'todayilearned': None,
-'bitcoin': None,
-'crime': 'crimeandmystery',
-'antifastonetoss': 'stonetoss',
-'smugideologyman': 'smuggies',
-'DestinyTheGame': 'Destiny',
-'playrust': 'rust',
-'FitToFat': 'fatpeoplehate',
+'wot': None,
+'crime': None,
+'thetagang': 'personalrssfeed',
+'wallstreetbetsogs': 'personalrssfeed',
+'ipo': 'personalrssfeed',
+'GoldandBlack': 'PrincipledAggression',
 'map_porn': 'mapporn',
 'extrafabulouscomics': 'comics',
-'transpassing': 'transcuties',
-'politics': 'realnews',
-'againsthatesubreddits': 'thememery',
-'politicalhumor': 'thememery',
-'traaaaaaannnnnnnnnns': 'trans',
-'worldevents': 'realnews',
-'hydrohomies': 'waterniggas',
+'worldevents': 'worldnews',
+'classicgreentext': 'greentext',
+'facts': 'unpoplularfacts',
+'internationalbusiness': 'business',
+'boglememes': 'bogleheads',
+'hobbydrama': 'hobbydrama',
+'internetdrama': 'deuxrama',
+'DankMemesFromSite19': 'okbuddyredacted',
+'SCPMemes': 'okbuddyredacted',
+'dankmeme': 'memes',
+'dankmemes': 'memes',
 'nomanshigh': 'nomanssky',
 'nmsgalactichub': 'nomanssky',
 'nomansskythegame': 'nomanssky',
-'classicgreentext': 'greentext',
-'games': 'gaming',
-'gamingnews': 'gaming',
 'okhistoryretard': 'historymemes',
 'okbuddyhistoretard': 'historymemes',
 'historydoge': 'historymemes',
-'hobbydrama': 'deuxrama',
-'facts': 'unpoplularfacts',
-'internationalbusiness': 'business',
-'internetdrama': 'deuxrama',
-'boglememes': 'bogleheads',
-'DankMemesFromSite19': 'okbuddyredacted',
-'SCPMemes': 'okbuddyredacted',
-'dankmeme': 'dankmemes',
-'dankmemes': 'dankmemes',
-'dataisugly': 'dataisbeautiful',
 'wallstreetbetsOGs': 'investing',
 'daytrading': 'investing',
 'dividends': 'investing',
 'etfs': 'investing',
 'options': 'investing',
-'ipo': 'investing',
 'spacs': 'investing',
 'thetagang': 'investing',
 'StockOfferings': 'investing'}
 
-memesubs = 'Anti_Meme+Meme_Battles+memesec+boottoobig+fakehistoryporn+bertstrips+yahooanswers+BikiniBottomTwitter+biomememes+FunnyandSad+sciencememes+chemistrymemes+physicsmemes+biologymemes+Imgoingtorockbottom+justgirlythings+ledootgeneration+MemeEconomy+MEOW_IRL+ShittyQuotesPorn+teenagers+Teleshits+TooMeIrlForMeIrl+TrollCoping+WackyTicTacs+zuckmemes+seinfeldmemes+NotKenM+MemesOfTheGreatWar+smoobypost+vsaucememes+MemriTVmemes+dankjewishmemes+Jewdank+ExpandDong+bptcg+wholesomemes+patrig+dankcrusadememes+Spongebros+Minimalisticmemes+911fanart+NotTimAndEricPics+NapkinMemes+queenslandrail+WhatAWeeb+drugmemes+SadMemesForHipTeens+IncrediblesMemes+anthologymemes+privacymemes+billwurtzmemes+Demotivational+civmemes+me_ira+PornMemes+SFWporn+LabelMemes+interactivememes+FreshMemes+GoodFakeTexts+LegoGameMemes+specificmemes+Muttersunderbreath+SpideyMeme+TomAndJerryMemes+BPDmemes+DrakeAndJoshTwitter+waluigi+republicofdankmemes+dankmeme+raimimemes+virginvschad+schoolshootermemes+comedynecromancy+Memeconomy+Memes_Of_The_Dank+marvelmemes+meme+TheWaterLew+PornhubComments+SteamReviews+shittysteamreviews+NewVegasMemes+FalloutMemes+showsovergohome+SkyrimMemes+HolidaySpecialMemes+lotrmemes+MaymayZone+LegoSWmemes+WestworldMemes+GameOfThronesMemes+thronescomics+aSongOfMemesAndRage+blandmemesofreality+Overwatchmemes+dril+pokememes+pokemonmemes+NintendoMemes+rarepuppers+gamingmemes+MemeWorldWar+explicitmemes+darksoulsmemes+MassEffectmeme+MassEffectMemes+DisneyMemes'
+memesubs = 'Anti_Meme+Meme_Battles+memesec+boottoobig+fakehistoryporn+bertstrips+yahooanswers+BikiniBottomTwitter+biomememes+FunnyandSad+sciencememes+chemistrymemes+physicsmemes+biologymemes+Imgoingtorockbottom+justgirlythings+ledootgeneration+MemeEconomy+ShittyQuotesPorn+teenagers+Teleshits+TrollCoping+WackyTicTacs+zuckmemes+seinfeldmemes+NotKenM+MemesOfTheGreatWar+smoobypost+vsaucememes+MemriTVmemes+dankjewishmemes+Jewdank+ExpandDong+bptcg+wholesomemes+patrig+dankcrusadememes+Spongebros+Minimalisticmemes+911fanart+NotTimAndEricPics+NapkinMemes+queenslandrail+WhatAWeeb+drugmemes+SadMemesForHipTeens+IncrediblesMemes+anthologymemes+privacymemes+billwurtzmemes+Demotivational+civmemes+me_ira+PornMemes+SFWporn+LabelMemes+interactivememes+FreshMemes+GoodFakeTexts+LegoGameMemes+specificmemes+Muttersunderbreath+SpideyMeme+TomAndJerryMemes+BPDmemes+DrakeAndJoshTwitter+waluigi+republicofdankmemes+dankmeme+raimimemes+virginvschad+schoolshootermemes+comedynecromancy+Memeconomy+Memes_Of_The_Dank+marvelmemes+meme+TheWaterLew+PornhubComments+SteamReviews+shittysteamreviews+NewVegasMemes+FalloutMemes+showsovergohome+SkyrimMemes+HolidaySpecialMemes+lotrmemes+MaymayZone+LegoSWmemes+WestworldMemes+GameOfThronesMemes+thronescomics+aSongOfMemesAndRage+blandmemesofreality+Overwatchmemes+dril+pokememes+pokemonmemes+NintendoMemes+norules+197+198+199+memecesspool+gamingmemes+MemeWorldWar+explicitmemes+darksoulsmemes+MassEffectmeme+MassEffectMemes+DisneyMemes'
 
 feedsandguilds = {
 'https://www.to-rss.xyz/wikipedia/current_events/': 'wikipedia',
 'https://feeds.feedburner.com/DVDsReleaseDates': 'dvdsreleasedates',
-'http://fetchrss.com/rss/5fab4317e88c9b130f62978260332c13300e6b01fa363952.xml': 'steam',
 'https://store.steampowered.com/feeds/newshub/app/730/?cc=AR&l=english&snr=1_2108_9__1601': 'csgo',
 'https://store.steampowered.com/feeds/newshub/app/334230/?cc=AR&l=english&snr=1_2108_9__1601': 'townofsalem',
 'https://store.steampowered.com/feeds/newshub/app/629760/?cc=AR&l=english&snr=1_2108_9__1601': 'mordhau',
@@ -151,69 +107,113 @@ feedsandguilds = {
 'https://www.youtube.com/feeds/videos.xml?channel_id=UCMmaBzfCCwZ2KqaBJjkj0fw': 'history', 
 'https://babylonbee.com/feed': 'satire',
 'https://thehardtimes.net/feed/': 'satire',
-'https://reductress.com/feed/': 'satire',
 'https://www.theonion.com/rss': 'satire',
-'http://feeds.foxbusiness.com/foxbusiness/latest': 'investing', 
-'https://finance.yahoo.com/news/rssindex': 'investing', 
-'https://www.etf.com/home.feed/feed': 'investing', 
-'https://seekingalpha.com/listing/most-popular-articles.xml': 'investing',
-'https://seekingalpha.com/feed/etfs-and-funds': 'investing',
-'https://seekingalpha.com/api/sa/combined/BUZZ.xml': 'investing',
-'https://seekingalpha.com/api/sa/combined/BRK.A.xml': 'investing',
-'https://seekingalpha.com/api/sa/combined/BRK.B.xml': 'investing',
-'https://seekingalpha.com/api/sa/combined/MSOS.xml': 'investing',
-'https://seekingalpha.com/api/sa/combined/TLT.xml': 'investing',
-'https://seekingalpha.com/api/sa/combined/AMC.xml': 'investing',
-'https://seekingalpha.com/api/sa/combined/GME.xml': 'investing',
-'https://seekingalpha.com/api/sa/combined/FAS.xml': 'investing',
-'https://seekingalpha.com/api/sa/combined/MOON.xml': 'investing',
-'https://seekingalpha.com/api/sa/combined/SPXL.xml': 'investing'}
+'http://feeds.foxbusiness.com/foxbusiness/latest': 'personalrssfeed', 
+'https://finance.yahoo.com/news/rssindex': 'personalrssfeed', 
+'https://www.etf.com/home.feed/feed': 'personalrssfeed', 
+'https://seekingalpha.com/listing/most-popular-articles.xml': 'personalrssfeed',
+'https://seekingalpha.com/feed/etfs-and-funds': 'personalrssfeed',
+'https://seekingalpha.com/api/sa/combined/BUZZ.xml': 'personalrssfeed',
+'https://seekingalpha.com/api/sa/combined/BRK.A.xml': 'personalrssfeed',
+'https://seekingalpha.com/api/sa/combined/BRK.B.xml': 'personalrssfeed',
+'https://seekingalpha.com/api/sa/combined/MSOS.xml': 'personalrssfeed',
+'https://seekingalpha.com/api/sa/combined/TLT.xml': 'personalrssfeed',
+'https://seekingalpha.com/api/sa/combined/AMC.xml': 'personalrssfeed',
+'https://seekingalpha.com/api/sa/combined/GME.xml': 'personalrssfeed',
+'https://seekingalpha.com/api/sa/combined/FAS.xml': 'personalrssfeed',
+'https://seekingalpha.com/api/sa/combined/MOON.xml': 'personalrssfeed',
+'https://seekingalpha.com/api/sa/combined/SPXL.xml': 'personalrssfeed'}
 
 while True:
-	accesstoken = json.loads(requests.post('https://ruqqus.com/oauth/grant', headers={"User-Agent": "cum"}, data = data).text)['access_token']
-	headers = {'User-Agent': 'cum', 'Authorization': f'Bearer {accesstoken}'}
+	accesstoken = json.loads(requests.post('https://ruqqus.com/oauth/grant', headers={'User-Agent': 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)'}, data = data).text)['access_token']
+	headers = {'User-Agent': 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)', 'Authorization': f'Bearer {accesstoken}'}
 
 	print('Mirroring subreddits...')
 	for sub, guild in subsandguilds.items():
 		n = 0
 		if guild == None: guild = sub
-		for p in reddit.subreddit(sub).top('day', limit=10):
-			if 'reddit.com/gallery' in p.url or 'v.redd' in p.url or 'u/' in p.title or 'r/' in p.title or 'reddit' in p.title or '?' in p.title: continue
-			try:
-				if p.is_self: post = requests.post('https://ruqqus.com/api/v1/submit', headers=headers, data={'body':p.selftext, 'title':p.title, 'board':guild})
-				else: post = requests.post('https://ruqqus.com/api/v1/submit', headers=headers, data={'url':p.url, 'title':p.title, 'board':guild})
-				postid = json.loads(post.text)['id']
-				print(f'ruqqus.com/post/{postid}')
-			except Exception as e: print(e)
+		for p in reddit.subreddit(sub).top('day'):
+			if p.is_self and guild != 'personalrssfeed' and guild != 'hobbydrama': continue
+			if p.over_18 or p.is_original_content or p.url in urls or p.title in titles or 'Hobby Scuffles' in p.title: continue
+			c = 0
+			for filter in ['gifv','gfycat', 'v.redd', 'reddit.com/gallery']:
+				if filter in p.url:
+					c = 1
+					break
+			for filter in ['i ', 'we ','my ', '[oc]', '(oc)', 'u/', 'r/', 'reddit', '?']:
+				if f' {filter}' in p.title.lower() or p.title.lower().startswith(filter):
+					c = 1
+					break
+			if c == 1: continue
+			if p.is_self and guild == 'hobbydrama': requests.post('https://ruqqus.com/api/v1/submit', headers=headers, data={'body':p.selftext, 'title':p.title, 'board':guild})
+			else: post = requests.post('https://ruqqus.com/api/v1/submit', headers=headers, data={'url':p.url, 'title':p.title, 'board':guild})
+			urls += f'{p.url}\n'
+			titles += f'{p.title}\n'
+			try: postid = json.loads(post.text)['id']
+			except Exception as e:
+				if 'Expecting value: line 1 column 1 (char 0)' in str(e): print(e)
+				else: print(post.text)
+				continue
+			print(f'ruqqus.com/post/{postid}')
+			n += 1
+			if n == 5:
+				print('Sleeping...')
+				time.sleep(360)
+				break
 
 	print('Mirroring r/drama...')
 	for p in reddit.subreddit('drama').top('day'):
-		if p.is_self: continue
-		try:
-			title = p.title.replace('/r/drama', 'deux').replace('r/drama', 'deux').replace('/drama', 'deux')
-			post = requests.post('https://ruqqus.com/api/v1/submit', headers=headers, data={'url':p.url, 'title':title, 'board':'deuxrama'})
-			postid = json.loads(post.text)['id']
-			print(f'ruqqus.com/post/{postid}')
-		except Exception as e: print(e)
+		if p.over_18 or p.is_self or p.url in urls or p.title in titles or 'u/' in p.title: continue
+		title = p.title.replace('/r/drama', 'deux').replace('r/drama', 'deux').replace('/drama', 'deux')
+		post = requests.post('https://ruqqus.com/api/v1/submit', headers=headers, data={'url':p.url, 'title':title, 'board':'deuxrama'})
+		urls += f'{p.url}\n'
+		titles += f'{p.title}\n'
+		try: postid = json.loads(post.text)['id']
+		except Exception as e:
+			print(e)
+			continue
+		print(f'ruqqus.com/post/{postid}')
 		
 	print('Posting memes')
-	for p in reddit.subreddit(memesubs).hot(limit=3):
-		if p.is_self or 'reddit.com/gallery' in p.url or 'v.redd' in p.url or 'u/' in p.title or 'r/' in p.title or 'reddit' in p.title: continue
-		try:
-			post = requests.post('https://ruqqus.com/api/v1/submit', headers=headers, data={'url':p.url, 'title':p.title, 'board':guild})
-			postid = json.loads(post.text)['id']
-			print(f'ruqqus.com/post/{postid}')
-		except Exception as e: print(e)
+	for p in reddit.subreddit(memesubs).hot(limit=10):
+		if p.over_18 or p.is_self or p.url in urls or p.title in titles or 'reddit.com/gallery' in p.url or 'v.redd' in p.url: continue
+		post = requests.post('https://ruqqus.com/api/v1/submit', headers=headers, data={'url':p.url, 'title':p.title, 'board':'memes'})
+		urls += f'{p.url}\n'
+		titles += f'{p.title}\n'
+		try: postid = json.loads(post.text)['id']
+		except Exception as e:
+			print(e)
+			continue
+		print(f'ruqqus.com/post/{postid}')
 	
 	print('Posting RSS feeds..')	
 	for feed, guild in feedsandguilds.items():
 		for item in feedparser.parse(feed).entries:
-			try:
-				post = requests.post('https://ruqqus.com/api/v1/submit', headers=headers, data={'url':p.url, 'title':p.title, 'board':guild})
-				postid = json.loads(post.text)['id']
-				print(f'ruqqus.com/post/{postid}')
-			except Exception as e: print(e)
-			break
-	
-	print('Sleeping...')
-	time.sleep(600)
+			if item.link in urls or item.title in titles: break
+			if 'marketwatch' in item.link: continue
+			post = requests.post('https://ruqqus.com/api/v1/submit', headers=headers, data={'url':item.link, 'title':item.title, 'board':guild})
+			urls += f'{item.link}\n'
+			titles += f'{item.title}\n'
+			try: postid = json.loads(post.text)['id']
+			except Exception as e:
+				print(e)
+				break
+			print(f'ruqqus.com/post/{postid}')
+
+	print('Posting tweets..')
+	for user, guild in {'elonmusk': 'elonmusk', 'cathiedwood': 'arkinvest'}.items():
+		for tweet in twitter.GetUserTimeline(screen_name=user):
+			url = f'https://twitter.com/{user}/status/{tweet.id}'
+			title = f'@{user}: {tweet.full_text}'
+			if url in urls or title in titles: break
+			post = requests.post('https://ruqqus.com/api/v1/submit', headers=headers, data={'url':url, 'title':title, 'board':guild})
+			urls += f'{url}\n'
+			titles += f'{title}\n'
+			try: postid = json.loads(post.text)['id']
+			except Exception as e:
+				print(e)
+				break
+			print(f'ruqqus.com/post/{postid}')
+
+	open(f'{directory}/urls.txt', encoding='utf-8', mode='w').write(urls)
+	open(f'{directory}/titles.txt', encoding='utf-8', mode='w').write(titles)
