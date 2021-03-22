@@ -1,4 +1,4 @@
-import praw, time, feedparser, sys, twitter, requests, json, ous
+import praw, time, feedparser, sys, twitter, requests, json, os, random
 
 reddit = praw.Reddit(user_agent='hey', client_id='PUT YOUR REDDIT CLIENT ID HERE', client_secret='PUT YOUR REDDIT CLIENT SECRET HERE',)
 data={'client_id': 'PUT YOUR RUQQUS CLIENT ID HERE',
@@ -176,8 +176,11 @@ while True:
 	headers = {'User-Agent': 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)', 'Authorization': f'Bearer {accesstoken}'}
 
 	print('Mirroring subreddits...')
-	for sub, guild in subsandguilds.items():
+	subs = list(subsandguilds.keys())
+	random.shuffle(subs)
+	for sub in subs:
 		n = 0
+		guild = subsandguilds[sub]
 		if guild == None: guild = sub
 		for p in reddit.subreddit(sub).top('day'):
 			if p.is_self and guild != 'personalrssfeed' and guild != 'hobbydrama': continue
@@ -241,21 +244,6 @@ while True:
 			post = requests.post('https://ruqqus.com/api/v1/submit', headers=headers, data={'url':item.link, 'title':item.title, 'board':guild})
 			urls += f'{item.link}\n'
 			titles += f'{item.title}\n'
-			try: postid = json.loads(post.text)['id']
-			except Exception as e:
-				print(e)
-				break
-			print(f'ruqqus.com/post/{postid}')
-
-	print('Posting tweets..')
-	for user, guild in {'elonmusk': 'elonmusk', 'cathiedwood': 'arkinvest'}.items():
-		for tweet in twitter.GetUserTimeline(screen_name=user):
-			url = f'https://twitter.com/{user}/status/{tweet.id}'
-			title = f'@{user}: {tweet.full_text}'
-			if url in urls or title in titles: break
-			post = requests.post('https://ruqqus.com/api/v1/submit', headers=headers, data={'url':url, 'title':title, 'board':guild})
-			urls += f'{url}\n'
-			titles += f'{title}\n'
 			try: postid = json.loads(post.text)['id']
 			except Exception as e:
 				print(e)
