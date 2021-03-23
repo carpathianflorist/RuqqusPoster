@@ -8,8 +8,6 @@ data={'client_id': 'PUT YOUR RUQQUS CLIENT ID HERE',
 }
 
 directory = os.path.dirname(os.path.realpath(__file__))
-urls = open(f'{directory}/urls.txt', encoding='utf8').read()
-titles = open(f'{directory}/titles.txt', encoding='utf8').read()
 
 subsandguilds = {
 'prequelmemes': None,
@@ -89,6 +87,8 @@ subsandguilds = {
 'unpopularopinion': None,
 'todayilearned': None,
 'bitcoin': None,
+'blackworldorder': 'mayoextinctionprophecy',
+'shemalefuckingmale': 'biofoidextinctionnow',
 'historyporn': 'historyinpics',
 'outrun': 'aesthetic',
 'GoldandBlack': 'PrincipledAggression',
@@ -180,12 +180,14 @@ while True:
 
 	print('Posting in +deuxrama...')
 	for p in reddit.subreddit('drama+hobbydrama+internetdrama').top('day'):
-		if p.over_18 or p.url in urls or p.title in titles or p.author == 'adminsare55IQ': continue
+		urls = open(f'{directory}/urls.txt', encoding='utf8').read()
+		titles = open(f'{directory}/titles.txt', encoding='utf8').read()
+		if p.over_18 or p.url in urls or p.title in titles or p.author == 'adminsare55IQ' or 'Hobby Scuffles' in p.title: continue
 		title = p.title.replace('/r/drama', 'Deux').replace('r/drama', 'Deux').replace('/drama', 'Deux')
 		if p.is_self: post = requests.post('https://ruqqus.com/api/v1/submit', headers=headers, data={'body':p.selftext, 'title':title, 'board':'deuxrama'})
 		else: post = requests.post('https://ruqqus.com/api/v1/submit', headers=headers, data={'url':p.url, 'title':title, 'board':'deuxrama'})
-		urls += f'{p.url}\n'
-		titles += f'{p.title}\n'
+		open(f'{directory}/urls.txt', encoding='utf-8', mode='a').write(f'{p.url}\n')
+		open(f'{directory}/titles.txt', encoding='utf-8', mode='a').write(f'{p.title}\n')
 		try: postid = json.loads(post.text)['id']
 		except Exception as e:
 			print(e)
@@ -194,10 +196,12 @@ while True:
 		
 	print('Posting memes')
 	for p in reddit.subreddit(memesubs).hot(limit=10):
+		urls = open(f'{directory}/urls.txt', encoding='utf8').read()
+		titles = open(f'{directory}/titles.txt', encoding='utf8').read()
 		if p.over_18 or p.is_self or p.url in urls or p.title in titles or 'reddit.com/gallery' in p.url or 'v.redd' in p.url: continue
 		post = requests.post('https://ruqqus.com/api/v1/submit', headers=headers, data={'url':p.url, 'title':p.title, 'board':'nonpoliticalmemes'})
-		urls += f'{p.url}\n'
-		titles += f'{p.title}\n'
+		open(f'{directory}/urls.txt', encoding='utf-8', mode='a').write(f'{p.url}\n')
+		open(f'{directory}/titles.txt', encoding='utf-8', mode='a').write(f'{p.title}\n')
 		try: postid = json.loads(post.text)['id']
 		except Exception as e:
 			print(e)
@@ -207,11 +211,13 @@ while True:
 	print('Posting RSS feeds..')	
 	for feed, guild in feedsandguilds.items():
 		for item in feedparser.parse(feed).entries:
+			urls = open(f'{directory}/urls.txt', encoding='utf8').read()
+			titles = open(f'{directory}/titles.txt', encoding='utf8').read()
 			if item.link in urls or item.title in titles: break
 			if 'marketwatch' in item.link: continue
 			post = requests.post('https://ruqqus.com/api/v1/submit', headers=headers, data={'url':item.link, 'title':item.title, 'board':guild})
-			urls += f'{item.link}\n'
-			titles += f'{item.title}\n'
+			open(f'{directory}/urls.txt', encoding='utf-8', mode='a').write(f'{item.link}\n')
+			open(f'{directory}/titles.txt', encoding='utf-8', mode='a').write(f'{item.title}\n')
 			try: postid = json.loads(post.text)['id']
 			except Exception as e:
 				print(e)
@@ -226,7 +232,10 @@ while True:
 		if guild == None: guild = sub
 		for p in reddit.subreddit(sub).top('day', limit=10):
 			if p.is_self and guild != 'personalrssfeed': continue
-			if p.over_18 or p.is_original_content or p.url in urls or p.title in titles or 'Hobby Scuffles' in p.title: continue
+			urls = open(f'{directory}/urls.txt', encoding='utf8').read()
+			titles = open(f'{directory}/titles.txt', encoding='utf8').read()
+			if p.over_18 and guild != 'mayoextinctionprophecy' and guild != 'biofoidextinctionnow': continue
+			if p.is_original_content or p.url in urls or p.title in titles: continue
 			c = 0
 			for filter in ['gifv','gfycat', 'v.redd', 'reddit.com/gallery']:
 				if filter in p.url:
@@ -238,8 +247,8 @@ while True:
 					break
 			if c == 1: continue
 			post = requests.post('https://ruqqus.com/api/v1/submit', headers=headers, data={'url':p.url, 'title':p.title, 'board':guild})
-			urls += f'{p.url}\n'
-			titles += f'{p.title}\n'
+			open(f'{directory}/urls.txt', encoding='utf-8', mode='a').write(f'{p.url}\n')
+			open(f'{directory}/titles.txt', encoding='utf-8', mode='a').write(f'{p.title}\n')
 			try: postid = json.loads(post.text)['id']
 			except Exception as e:
 				if 'Expecting value: line 1 column 1 (char 0)' in str(e): print(e)
@@ -249,6 +258,3 @@ while True:
 			print('Sleeping...')
 			time.sleep(60)
 			break
-
-	open(f'{directory}/urls.txt', encoding='utf-8', mode='w').write(urls)
-	open(f'{directory}/titles.txt', encoding='utf-8', mode='w').write(titles)
