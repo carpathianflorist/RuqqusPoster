@@ -90,6 +90,8 @@ subsandguilds = {
 'todayilearned': None,
 'bitcoin': None,
 'hobbydrama': None,
+'historyporn': 'historyinpics',
+'outrun': 'aesthetic',
 'GoldandBlack': 'PrincipledAggression',
 'Catholicism': 'insanepeoplereddit',
 'Christianity': 'insanepeoplereddit',
@@ -122,8 +124,8 @@ subsandguilds = {
 'boglememes': 'bogleheads',
 'DankMemesFromSite19': 'okbuddyredacted',
 'SCPMemes': 'okbuddyredacted',
-'dankmeme': 'memes',
-'dankmemes': 'memes',
+'dankmeme': 'nonpoliticalmemes',
+'dankmemes': 'nonpoliticalmemes',
 'dataisugly': 'dataisbeautiful',
 'wallstreetbetsOGs': 'investing',
 'daytrading': 'investing',
@@ -172,17 +174,19 @@ feedsandguilds = {
 'https://seekingalpha.com/api/sa/combined/SPXL.xml': 'personalrssfeed'}
 
 while True:
-	accesstoken = json.loads(requests.post('https://ruqqus.com/oauth/grant', headers={'User-Agent': 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)'}, data = data).text)['access_token']
+	try: accesstoken = json.loads(requests.post('https://ruqqus.com/oauth/grant', headers={'User-Agent': 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)'}, data = data).text)['access_token']
+	except Exception as e:
+		print(requests.post('https://ruqqus.com/oauth/grant', headers={'User-Agent': 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)'}, data = data).text)
+		sys.exit()
 	headers = {'User-Agent': 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)', 'Authorization': f'Bearer {accesstoken}'}
 
 	print('Mirroring subreddits...')
 	subs = list(subsandguilds.keys())
 	random.shuffle(subs)
 	for sub in subs:
-		n = 0
 		guild = subsandguilds[sub]
 		if guild == None: guild = sub
-		for p in reddit.subreddit(sub).top('day'):
+		for p in reddit.subreddit(sub).top('day', limit=10):
 			if p.is_self and guild != 'personalrssfeed' and guild != 'hobbydrama': continue
 			if p.over_18 or p.is_original_content or p.url in urls or p.title in titles or 'Hobby Scuffles' in p.title: continue
 			c = 0
@@ -190,7 +194,7 @@ while True:
 				if filter in p.url:
 					c = 1
 					break
-			for filter in ['i ', 'we ','my ', '[oc]', '(oc)', 'u/', 'r/', 'reddit', '?']:
+			for filter in ['i ', "i've ", 'we ','my ', 'us ', 'our ', 'you ', '[oc]', '(oc)', 'u/', 'r/', 'reddit', '?']:
 				if f' {filter}' in p.title.lower() or p.title.lower().startswith(filter):
 					c = 1
 					break
@@ -205,11 +209,9 @@ while True:
 				else: print(post.text)
 				continue
 			print(f'ruqqus.com/post/{postid}')
-			n += 1
-			if n == 5:
-				print('Sleeping...')
-				time.sleep(360)
-				break
+			print('Sleeping...')
+			time.sleep(60)
+			break
 
 	print('Mirroring r/drama...')
 	for p in reddit.subreddit('drama').top('day'):
@@ -227,7 +229,7 @@ while True:
 	print('Posting memes')
 	for p in reddit.subreddit(memesubs).hot(limit=10):
 		if p.over_18 or p.is_self or p.url in urls or p.title in titles or 'reddit.com/gallery' in p.url or 'v.redd' in p.url: continue
-		post = requests.post('https://ruqqus.com/api/v1/submit', headers=headers, data={'url':p.url, 'title':p.title, 'board':'memes'})
+		post = requests.post('https://ruqqus.com/api/v1/submit', headers=headers, data={'url':p.url, 'title':p.title, 'board':'nonpoliticalmemes'})
 		urls += f'{p.url}\n'
 		titles += f'{p.title}\n'
 		try: postid = json.loads(post.text)['id']
