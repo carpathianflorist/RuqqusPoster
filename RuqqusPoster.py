@@ -89,24 +89,15 @@ subsandguilds = {
 'unpopularopinion': None,
 'todayilearned': None,
 'bitcoin': None,
-'hobbydrama': None,
 'historyporn': 'historyinpics',
 'outrun': 'aesthetic',
 'GoldandBlack': 'PrincipledAggression',
-'Catholicism': 'insanepeoplereddit',
-'Christianity': 'insanepeoplereddit',
 'crime': 'crimeandmystery',
 'antifastonetoss': 'stonetoss',
 'smugideologyman': 'smuggies',
 'DestinyTheGame': 'Destiny',
 'playrust': 'rust',
-'FitToFat': 'fatpeoplehate',
 'map_porn': 'mapporn',
-'extrafabulouscomics': 'comics',
-'transpassing': 'transcuties',
-'againsthatesubreddits': 'thememery',
-'politicalhumor': 'thememery',
-'traaaaaaannnnnnnnnns': 'trans',
 'worldevents': 'worldnews',
 'hydrohomies': 'waterniggas',
 'nomanshigh': 'nomanssky',
@@ -120,7 +111,6 @@ subsandguilds = {
 'historydoge': 'historymemes',
 'facts': 'unpoplularfacts',
 'internationalbusiness': 'business',
-'internetdrama': 'deuxrama',
 'boglememes': 'bogleheads',
 'DankMemesFromSite19': 'okbuddyredacted',
 'SCPMemes': 'okbuddyredacted',
@@ -135,7 +125,15 @@ subsandguilds = {
 'ipo': 'investing',
 'spacs': 'investing',
 'thetagang': 'investing',
-'StockOfferings': 'investing'}
+'StockOfferings': 'investing',
+'Catholicism': 'insanepeoplereddit',
+'Christianity': 'insanepeoplereddit',
+'FitToFat': 'fatpeoplehate',
+'extrafabulouscomics': 'comics',
+'transpassing': 'transcuties',
+'againsthatesubreddits': 'thememery',
+'politicalhumor': 'thememery',
+'traaaaaaannnnnnnnnns': 'trans'}
 
 memesubs = 'Anti_Meme+Meme_Battles+memesec+boottoobig+fakehistoryporn+bertstrips+yahooanswers+BikiniBottomTwitter+biomememes+FunnyandSad+sciencememes+chemistrymemes+physicsmemes+biologymemes+Imgoingtorockbottom+justgirlythings+ledootgeneration+MemeEconomy+ShittyQuotesPorn+teenagers+Teleshits+TrollCoping+WackyTicTacs+zuckmemes+seinfeldmemes+NotKenM+MemesOfTheGreatWar+smoobypost+vsaucememes+MemriTVmemes+dankjewishmemes+Jewdank+ExpandDong+bptcg+wholesomemes+patrig+dankcrusadememes+Spongebros+Minimalisticmemes+911fanart+NotTimAndEricPics+NapkinMemes+queenslandrail+WhatAWeeb+drugmemes+SadMemesForHipTeens+IncrediblesMemes+anthologymemes+privacymemes+billwurtzmemes+Demotivational+civmemes+me_ira+PornMemes+SFWporn+LabelMemes+interactivememes+FreshMemes+GoodFakeTexts+LegoGameMemes+specificmemes+Muttersunderbreath+SpideyMeme+TomAndJerryMemes+BPDmemes+DrakeAndJoshTwitter+waluigi+republicofdankmemes+dankmeme+raimimemes+virginvschad+schoolshootermemes+comedynecromancy+Memeconomy+Memes_Of_The_Dank+marvelmemes+meme+TheWaterLew+PornhubComments+SteamReviews+shittysteamreviews+NewVegasMemes+FalloutMemes+showsovergohome+SkyrimMemes+HolidaySpecialMemes+lotrmemes+MaymayZone+LegoSWmemes+WestworldMemes+GameOfThronesMemes+thronescomics+aSongOfMemesAndRage+blandmemesofreality+Overwatchmemes+dril+pokememes+pokemonmemes+NintendoMemes+norules+197+198+199+memecesspool+gamingmemes+MemeWorldWar+explicitmemes+darksoulsmemes+MassEffectmeme+MassEffectMemes+DisneyMemes'
 
@@ -174,50 +172,18 @@ feedsandguilds = {
 'https://seekingalpha.com/api/sa/combined/SPXL.xml': 'personalrssfeed'}
 
 while True:
-	try: accesstoken = json.loads(requests.post('https://ruqqus.com/oauth/grant', headers={'User-Agent': 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)'}, data = data).text)['access_token']
+	try: accesstoken = json.loads(requests.post('https://ruqqus.com/oauth/grant', headers={'X-User-Type': 'Bot','User-Agent': 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)'}, data = data).text)['access_token']
 	except Exception as e:
-		print(requests.post('https://ruqqus.com/oauth/grant', headers={'User-Agent': 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)'}, data = data).text)
+		print(requests.post('https://ruqqus.com/oauth/grant', headers={'X-User-Type': 'Bot','User-Agent': 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)'}, data = data).text)
 		sys.exit()
-	headers = {'User-Agent': 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)', 'Authorization': f'Bearer {accesstoken}'}
+	headers = {'X-User-Type': 'Bot', 'User-Agent': 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)', 'Authorization': f'Bearer {accesstoken}'}
 
-	print('Mirroring subreddits...')
-	subs = list(subsandguilds.keys())
-	random.shuffle(subs)
-	for sub in subs:
-		guild = subsandguilds[sub]
-		if guild == None: guild = sub
-		for p in reddit.subreddit(sub).top('day', limit=10):
-			if p.is_self and guild != 'personalrssfeed' and guild != 'hobbydrama': continue
-			if p.over_18 or p.is_original_content or p.url in urls or p.title in titles or 'Hobby Scuffles' in p.title: continue
-			c = 0
-			for filter in ['gifv','gfycat', 'v.redd', 'reddit.com/gallery']:
-				if filter in p.url:
-					c = 1
-					break
-			for filter in ['i ', "i've ", 'we ','my ', 'us ', 'our ', 'you ', '[oc]', '(oc)', 'u/', 'r/', 'reddit', '?']:
-				if f' {filter}' in p.title.lower() or p.title.lower().startswith(filter):
-					c = 1
-					break
-			if c == 1: continue
-			if p.is_self and guild == 'hobbydrama': requests.post('https://ruqqus.com/api/v1/submit', headers=headers, data={'body':p.selftext, 'title':p.title, 'board':guild})
-			else: post = requests.post('https://ruqqus.com/api/v1/submit', headers=headers, data={'url':p.url, 'title':p.title, 'board':guild})
-			urls += f'{p.url}\n'
-			titles += f'{p.title}\n'
-			try: postid = json.loads(post.text)['id']
-			except Exception as e:
-				if 'Expecting value: line 1 column 1 (char 0)' in str(e): print(e)
-				else: print(post.text)
-				continue
-			print(f'ruqqus.com/post/{postid}')
-			print('Sleeping...')
-			time.sleep(60)
-			break
-
-	print('Mirroring r/drama...')
-	for p in reddit.subreddit('drama').top('day'):
-		if p.over_18 or p.is_self or p.url in urls or p.title in titles or 'u/' in p.title: continue
-		title = p.title.replace('/r/drama', 'deux').replace('r/drama', 'deux').replace('/drama', 'deux')
-		post = requests.post('https://ruqqus.com/api/v1/submit', headers=headers, data={'url':p.url, 'title':title, 'board':'deuxrama'})
+	print('Posting in +deuxrama...')
+	for p in reddit.subreddit('drama+hobbydrama+internetdrama').top('day'):
+		if p.over_18 or p.url in urls or p.title in titles or p.author == 'adminsare55IQ': continue
+		title = p.title.replace('/r/drama', 'Deux').replace('r/drama', 'Deux').replace('/drama', 'Deux')
+		if p.is_self: post = requests.post('https://ruqqus.com/api/v1/submit', headers=headers, data={'body':p.selftext, 'title':title, 'board':'deuxrama'})
+		else: post = requests.post('https://ruqqus.com/api/v1/submit', headers=headers, data={'url':p.url, 'title':title, 'board':'deuxrama'})
 		urls += f'{p.url}\n'
 		titles += f'{p.title}\n'
 		try: postid = json.loads(post.text)['id']
@@ -251,6 +217,38 @@ while True:
 				print(e)
 				break
 			print(f'ruqqus.com/post/{postid}')
+
+	print('Mirroring subreddits...')
+	subs = list(subsandguilds.keys())
+	random.shuffle(subs)
+	for sub in subs:
+		guild = subsandguilds[sub]
+		if guild == None: guild = sub
+		for p in reddit.subreddit(sub).top('day', limit=10):
+			if p.is_self and guild != 'personalrssfeed': continue
+			if p.over_18 or p.is_original_content or p.url in urls or p.title in titles or 'Hobby Scuffles' in p.title: continue
+			c = 0
+			for filter in ['gifv','gfycat', 'v.redd', 'reddit.com/gallery']:
+				if filter in p.url:
+					c = 1
+					break
+			for filter in ['i ', "i've ", 'we ','my ', 'us ', 'our ', 'you ', '[oc]', '(oc)', 'u/', 'r/', 'reddit', '?']:
+				if f' {filter}' in p.title.lower() or p.title.lower().startswith(filter):
+					c = 1
+					break
+			if c == 1: continue
+			post = requests.post('https://ruqqus.com/api/v1/submit', headers=headers, data={'url':p.url, 'title':p.title, 'board':guild})
+			urls += f'{p.url}\n'
+			titles += f'{p.title}\n'
+			try: postid = json.loads(post.text)['id']
+			except Exception as e:
+				if 'Expecting value: line 1 column 1 (char 0)' in str(e): print(e)
+				else: print(post.text)
+				continue
+			print(f'ruqqus.com/post/{postid}')
+			print('Sleeping...')
+			time.sleep(60)
+			break
 
 	open(f'{directory}/urls.txt', encoding='utf-8', mode='w').write(urls)
 	open(f'{directory}/titles.txt', encoding='utf-8', mode='w').write(titles)
